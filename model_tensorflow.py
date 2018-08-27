@@ -5,7 +5,7 @@ import ipdb
 import tensorflow as tf
 import numpy as np
 import pandas as pd
-import cPickle
+import pickle
 
 from tensorflow.models.rnn import rnn_cell
 import tensorflow.python.platform
@@ -188,7 +188,7 @@ class Caption_Generator():
         return context, generated_words, logit_list, alpha_list
 
 
-def preProBuildWordVocab(sentence_iterator, word_count_threshold=4): # borrowed this function from NeuralTalk
+def preProBuildWordVocab(sentence_iterator, word_count_threshold=30): # borrowed this function from NeuralTalk
     print 'preprocessing word counts and creating vocab based on word count threshold %d' % (word_count_threshold, )
     word_counts = {}
     nsents = 0
@@ -218,13 +218,13 @@ def preProBuildWordVocab(sentence_iterator, word_count_threshold=4): # borrowed 
 
 
 ###### 학습 관련 Parameters ######
-n_epochs=100
-batch_size=10
+n_epochs=1000
+batch_size=80
 dim_embed=256
 dim_ctx=512
 dim_hidden=256
 ctx_shape=[196,512]
-pretrained_model_path = ' '
+pretrained_model_path = ''
 #############################
 ###### 잡다한 Parameters #####
 annotation_path = '/data/weixin-42421001/vgg/annotations.pickle'
@@ -238,7 +238,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     captions = annotation_data['caption'].values
     wordtoix, ixtoword, bias_init_vector = preProBuildWordVocab(captions)
 
-    learning_rate=2
+    learning_rate=0.001
     n_words = len(wordtoix)
     feats = np.load(feat_path)
     maxlen = np.max( map(lambda x: len(x.split(' ')), captions) )
@@ -332,4 +332,5 @@ def test(test_feat='./guitar_player.npy', model_path='./model/model-6', maxlen=2
 #    generated_sentence = ' '.join(generated_words)
 #    ipdb.set_trace()
 train()
+
 
