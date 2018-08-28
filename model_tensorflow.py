@@ -247,7 +247,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     learning_rate=2.0
     global_step=tf.Variable(0,trainable=False)
     learning_rate = tf.train.exponential_decay(learning_rate, global_step,
-                                       int(len(index)/batch_size), 0.95,stayrcase = True)
+                                       int(len(index)/batch_size), 0.95,staircase = True)
 
     maxlen = np.max([x for x in map(lambda x: len(x.split(' ')), captions)])
 
