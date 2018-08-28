@@ -127,7 +127,7 @@ class Caption_Generator():
             logits = tf.nn.dropout(logits, 0.5)
 
             logit_words = tf.matmul(logits, self.decode_word_W) + self.decode_word_b
-            cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logit_words, onehot_labels)
+            cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits = logit_words, labels=onehot_labels)
             cross_entropy = cross_entropy * mask[:,ind]
 
             current_loss = tf.reduce_sum(cross_entropy)
@@ -219,7 +219,7 @@ def preProBuildWordVocab(sentence_iterator, word_count_threshold=4): # borrowed 
 
 ###### 학습 관련 Parameters ######
 n_epochs=1000
-batch_size=80
+batch_size=10
 dim_embed=256
 dim_ctx=512
 dim_hidden=256
