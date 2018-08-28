@@ -218,7 +218,7 @@ def preProBuildWordVocab(sentence_iterator, word_count_threshold=4): # borrowed 
 
 
 ###### 학습 관련 Parameters ######
-n_epochs=100
+n_epochs=1000
 batch_size=10
 dim_embed=256
 dim_ctx=512
@@ -244,10 +244,10 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     index = (np.arange(len(feats)).astype(int))
     np.random.shuffle(index)
 
-    learning_rate=2.0
-    global_step=tf.Variable(0,trainable=False)
-    learning_rate = tf.train.exponential_decay(learning_rate, global_step,
-                                       1, 0.95, staircase = True)
+    learning_rate=0.001
+    #global_step=tf.Variable(0,trainable=False)
+    #learning_rate = tf.train.exponential_decay(learning_rate, global_step,
+    #                                   1, 0.95, staircase = True)
 
     maxlen = np.max([x for x in map(lambda x: len(x.split(' ')), captions)])
 
@@ -310,17 +310,17 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
             for ind, row in enumerate(current_mask_matrix):
                 row[:nonzeros[ind]] = 1
 
-            gs, _, loss_value, summary_string= sess.run([global_step, train_op, loss, merged_summary_op], feed_dict={
+            _, loss_value, summary_string= sess.run([train_op, loss, merged_summary_op], feed_dict={
                 context:current_feats,
                 sentence:current_caption_matrix,
                 mask:current_mask_matrix})
 
             
             print("Current Cost: ", loss_value)        
-            summary_string_writer.add_summary(summary_string, gs*len(index)+start+1)
+            summary_string_writer.add_summary(summary_string, epoch*len(index)+start+1)
             
             
-        saver.save(sess, os.path.join(model_path, 'model'), global_step=gs)
+        saver.save(sess, os.path.join(model_path, 'model'), global_step=epoch)
         
     summary_string_writer.close()
 
