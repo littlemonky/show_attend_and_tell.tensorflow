@@ -247,7 +247,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     learning_rate=2.0
     global_step=tf.Variable(0,trainable=False)
     learning_rate = tf.train.exponential_decay(learning_rate, global_step,
-                                       int(len(index)/batch_size), 0.95)
+                                       int(len(index)/batch_size), 0.95,stayrcase = True)
 
     maxlen = np.max([x for x in map(lambda x: len(x.split(' ')), captions)])
 
@@ -270,6 +270,11 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     saver=tf.train.Saver(max_to_keep=50)
 
     train_op = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss)
+    tf.summary.scalar("loss", loss_value)
+    tf.summary.scalar("learning_rate", learning_rate)
+    merged_summary_op = tf.summary.merge_all()
+    
+    
     tf.global_variables_initializer().run()
     if pretrained_model_path:
         print("Starting with pretrained model")
@@ -303,21 +308,21 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
             for ind, row in enumerate(current_mask_matrix):
                 row[:nonzeros[ind]] = 1
 
-            _, loss_value = sess.run([train_op, loss], feed_dict={
+            gs, _, loss_value, summary_string= sess.run([global_step, train_op, loss, merged_summary_op], feed_dict={
                 context:current_feats,
                 sentence:current_caption_matrix,
                 mask:current_mask_matrix})
 
+            
             print("Current Cost: ", loss_value)
-            tf.summary.scalar("losses", loss_value)
-            tf.summary.scalar("learning_rate", learning_rate)
-            merged_summary_op = tf.summary.merge_all()
-            summary_string_writer.add_summary(sess.run(merged_summary_op), epoch*(len(index)/batch_size)+start+1)
+            
+         
+            summary_string_writer.add_summary(summary_string, gs)
             
             
-        saver.save(sess, os.path.join(model_path, 'model'), global_step=epoch)
+        saver.save(sess, os.path.join(model_path, 'model'), global_step=gs)
         
-    summary__string_writer.close()
+    summary_string_writer.close()
 
 def test(test_feat='./guitar_player.npy', model_path='./model/model-6', maxlen=20):
     annotation_data = pd.read_pickle(annotation_path)
