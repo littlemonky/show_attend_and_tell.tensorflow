@@ -317,6 +317,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
 
             
             print("Current Cost: ", loss_value)
+            print(gs)
             
          
             summary_string_writer.add_summary(summary_string, gs)
