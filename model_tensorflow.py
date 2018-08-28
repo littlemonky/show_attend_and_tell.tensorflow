@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import pickle
 
-from tensorflow.models.rnn import rnn_cell
+#from tensorflow.models.rnn import rnn_cell
 import tensorflow.python.platform
 from keras.preprocessing import sequence
 
@@ -94,8 +94,8 @@ class Caption_Generator():
 
             labels = tf.expand_dims(sentence[:,ind], 1)
             indices = tf.expand_dims(tf.range(0, self.batch_size, 1), 1)
-            concated = tf.concat(1, [indices, labels])
-            onehot_labels = tf.sparse_to_dense( concated, tf.pack([self.batch_size, self.n_words]), 1.0, 0.0)
+            concated = tf.concat([indices, labels],1)
+            onehot_labels = tf.sparse_to_dense( concated, tf.stack([self.batch_size, self.n_words]), 1.0, 0.0)
 
             context_encode = context_encode + \
                  tf.expand_dims(tf.matmul(h, self.hidden_att_W), 1) + \
@@ -112,7 +112,7 @@ class Caption_Generator():
             weighted_context = tf.reduce_sum(context * tf.expand_dims(alpha, 2), 1)
 
             lstm_preactive = tf.matmul(h, self.lstm_U) + x_t + tf.matmul(weighted_context, self.image_encode_W)
-            i, f, o, new_c = tf.split(1, 4, lstm_preactive)
+            i, f, o, new_c = tf.split(lstm_preactive,4,1)
 
             i = tf.nn.sigmoid(i)
             f = tf.nn.sigmoid(f)
@@ -162,7 +162,7 @@ class Caption_Generator():
 
             lstm_preactive = tf.matmul(h, self.lstm_U) + x_t + tf.matmul(weighted_context, self.image_encode_W)
 
-            i, f, o, new_c = tf.split(1, 4, lstm_preactive)
+            i, f, o, new_c = tf.split(lstm_preactive,4,1)
 
             i = tf.nn.sigmoid(i)
             f = tf.nn.sigmoid(f)
@@ -188,8 +188,8 @@ class Caption_Generator():
         return context, generated_words, logit_list, alpha_list
 
 
-def preProBuildWordVocab(sentence_iterator, word_count_threshold=30): # borrowed this function from NeuralTalk
-    print 'preprocessing word counts and creating vocab based on word count threshold %d' % (word_count_threshold, )
+def preProBuildWordVocab(sentence_iterator, word_count_threshold=4): # borrowed this function from NeuralTalk
+    print('preprocessing word counts and creating vocab based on word count threshold %d' % (word_count_threshold, ))
     word_counts = {}
     nsents = 0
     for sent in sentence_iterator:
@@ -197,7 +197,7 @@ def preProBuildWordVocab(sentence_iterator, word_count_threshold=30): # borrowed
       for w in sent.lower().split(' '):
         word_counts[w] = word_counts.get(w, 0) + 1
     vocab = [w for w in word_counts if word_counts[w] >= word_count_threshold]
-    print 'filtered words from %d to %d' % (len(word_counts), len(vocab))
+    print('filtered words from %d to %d' % (len(word_counts), len(vocab)))
 
     ixtoword = {}
     ixtoword[0] = '.'  # period at the end of the sentence. make first dimension be end token
@@ -224,7 +224,7 @@ dim_embed=256
 dim_ctx=512
 dim_hidden=256
 ctx_shape=[196,512]
-pretrained_model_path = ''
+pretrained_model_path = False
 #############################
 ###### 잡다한 Parameters #####
 annotation_path = '/data/weixin-42421001/vgg/annotations.pickle'
@@ -260,8 +260,8 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
 
     train_op = tf.train.AdamOptimizer(learning_rate).minimize(loss)
     tf.initialize_all_variables().run()
-    if pretrained_model_path is not None:
-        print "Starting with pretrained model"
+    if pretrained_model_path:
+        print("Starting with pretrained model")
         saver.restore(sess, pretrained_model_path)
 
     index = list(annotation_data.index)
@@ -295,7 +295,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
                 sentence:current_caption_matrix,
                 mask:current_mask_matrix})
 
-            print "Current Cost: ", loss_value
+            print("Current Cost: ", loss_value)
         saver.save(sess, os.path.join(model_path, 'model'), global_step=epoch)
 
 def test(test_feat='./guitar_player.npy', model_path='./model/model-6', maxlen=20):
