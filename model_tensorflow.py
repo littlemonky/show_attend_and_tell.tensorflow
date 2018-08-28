@@ -224,7 +224,7 @@ dim_embed=256
 dim_ctx=512
 dim_hidden=256
 ctx_shape=[196,512]
-pretrained_model_path = ''
+pretrained_model_path = False
 #############################
 ###### 잡다한 Parameters #####
 annotation_path = '/data/weixin-42421001/vgg/annotations.pickle'
@@ -238,11 +238,17 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     captions = annotation_data['caption'].values
     wordtoix, ixtoword, bias_init_vector = preProBuildWordVocab(captions)
 
-    learning_rate=0.001
+
     n_words = len(wordtoix)
     feats = np.load(feat_path)
     index = (np.arange(len(feats)).astype(int))
     np.random.shuffle(index)
+
+    learning_rate=2.0
+    global_step=tf.Variable(0,trainable=False)
+    learning_rate = tf.train.exponential_decay(learning_rate, global_step,
+                                       int(len(index)/batch_size), 0.95)
+
     maxlen = np.max([x for x in map(lambda x: len(x.split(' ')), captions)])
 
     sess = tf.InteractiveSession()
@@ -252,17 +258,19 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
             dim_embed=dim_embed,
             dim_ctx=dim_ctx,
             dim_hidden=dim_hidden,
-            n_lstm_steps=maxlen+1, # w1~wN까지 예측한 뒤 마지막에 '.'예측해야하니까 +1
+            n_lstm_steps=maxlen+2, # w1~wN까지 예측한 뒤 마지막에 '.'예측해야하니까 +1
             batch_size=batch_size,
             ctx_shape=ctx_shape,
             bias_init_vector=bias_init_vector)
 
     loss, context, sentence, mask = caption_generator.build_model()
-    saver = tf.train.Saver(max_to_keep=50)
+
+
+    saver=tf.train.Saver(max_to_keep=50)
 
     train_op = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss)
     tf.global_variables_initializer().run()
-    if pretrained_model_path is None:
+    if pretrained_model_path:
         print("Starting with pretrained model")
         saver.restore(sess, pretrained_model_path)
 
@@ -272,7 +280,9 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
 
     #captions = annotation_data['caption'].values
     #image_id = annotation_data['image_id'].values
-
+    print(mask.shape)
+    print(sentence.shape)
+    print(context.shape)
     for epoch in range(n_epochs):
         for start, end in zip(range(0, len(index), batch_size),range(batch_size, len(index), batch_size)):
 
@@ -285,8 +295,11 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
             current_caption_matrix = sequence.pad_sequences(current_caption_ind, padding='post', maxlen=maxlen+1)
             current_caption_matrix = np.hstack([np.full((len(current_caption_matrix), 1), 0), current_caption_matrix])
 
+
             current_mask_matrix = np.zeros((current_caption_matrix.shape[0], current_caption_matrix.shape[1]))
+            print(current_mask_matrix.shape)
             nonzeros = np.array([x for x in map(lambda x: (x != 0).sum()+1, current_caption_matrix )])
+
 
             for ind, row in enumerate(current_mask_matrix):
                 row[:nonzeros[ind]] = 1
@@ -333,4 +346,6 @@ def test(test_feat='./guitar_player.npy', model_path='./model/model-6', maxlen=2
 #    generated_sentence = ' '.join(generated_words)
 #    ipdb.set_trace()
 train()
+
+
 
