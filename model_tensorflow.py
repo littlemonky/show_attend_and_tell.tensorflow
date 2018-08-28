@@ -218,7 +218,7 @@ def preProBuildWordVocab(sentence_iterator, word_count_threshold=4): # borrowed 
 
 
 ###### 학습 관련 Parameters ######
-n_epochs=1000
+n_epochs=100
 batch_size=10
 dim_embed=256
 dim_ctx=512
@@ -247,7 +247,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     learning_rate=2.0
     global_step=tf.Variable(0,trainable=False)
     learning_rate = tf.train.exponential_decay(learning_rate, global_step,
-                                       int(len(index)/batch_size), 0.95, staircase = True)
+                                       1, 0.95, staircase = True)
 
     maxlen = np.max([x for x in map(lambda x: len(x.split(' ')), captions)])
 
@@ -316,11 +316,8 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
                 mask:current_mask_matrix})
 
             
-            print("Current Cost: ", loss_value)
-            print(gs)
-            
-         
-            summary_string_writer.add_summary(summary_string, gs)
+            print("Current Cost: ", loss_value)        
+            summary_string_writer.add_summary(summary_string, gs*len(index)+start+1)
             
             
         saver.save(sess, os.path.join(model_path, 'model'), global_step=gs)
