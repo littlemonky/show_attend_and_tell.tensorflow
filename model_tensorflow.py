@@ -5,7 +5,7 @@ import os
 import tensorflow as tf
 import numpy as np
 import pandas as pd
-import pickle
+#import pickle
 
 #from tensorflow.models.rnn import rnn_cell
 #import tensorflow.python.platform
@@ -127,7 +127,7 @@ class Caption_Generator():
             logits = tf.nn.dropout(logits, 0.5)
 
             logit_words = tf.matmul(logits, self.decode_word_W) + self.decode_word_b
-            cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits = logit_words, labels=onehot_labels)
+            cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits = logit_words, labels = onehot_labels)
             cross_entropy = cross_entropy * mask[:,ind]
 
             current_loss = tf.reduce_sum(cross_entropy)
@@ -162,7 +162,7 @@ class Caption_Generator():
 
             lstm_preactive = tf.matmul(h, self.lstm_U) + x_t + tf.matmul(weighted_context, self.image_encode_W)
 
-            i, f, o, new_c = tf.split(lstm_preactive,4,1)
+            i, f, o, new_c = tf.split(1, 4, lstm_preactive)
 
             i = tf.nn.sigmoid(i)
             f = tf.nn.sigmoid(f)
@@ -224,7 +224,7 @@ dim_embed=256
 dim_ctx=512
 dim_hidden=256
 ctx_shape=[196,512]
-pretrained_model_path = False
+pretrained_model_path = ''
 #############################
 ###### 잡다한 Parameters #####
 annotation_path = '/data/weixin-42421001/vgg/annotations.pickle'
@@ -241,7 +241,9 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     learning_rate=0.001
     n_words = len(wordtoix)
     feats = np.load(feat_path)
-    maxlen = np.max( map(lambda x: len(x.split(' ')), captions) )
+    index = (np.arange(len(feats)).astype(int))
+    np.random.shuffle(index)
+    maxlen = np.max([x for x in map(lambda x: len(x.split(' ')), captions)])
 
     sess = tf.InteractiveSession()
 
@@ -258,34 +260,33 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     loss, context, sentence, mask = caption_generator.build_model()
     saver = tf.train.Saver(max_to_keep=50)
 
-    train_op = tf.train.AdamOptimizer(learning_rate).minimize(loss)
-    tf.initialize_all_variables().run()
-    if pretrained_model_path:
+    train_op = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss)
+    tf.global_variables_initializer().run()
+    if pretrained_model_path is None:
         print("Starting with pretrained model")
         saver.restore(sess, pretrained_model_path)
 
-    index = list(annotation_data.index)
-    np.random.shuffle(index)
-    annotation_data = annotation_data.ix[index]
+    #index = list(annotation_data.index)
+    #np.random.shuffle(index)
+    #annotation_data = annotation_data.ix[index]
 
-    captions = annotation_data['caption'].values
-    image_id = annotation_data['image_id'].values
+    #captions = annotation_data['caption'].values
+    #image_id = annotation_data['image_id'].values
 
     for epoch in range(n_epochs):
-        for start, end in zip( \
-                range(0, len(captions), batch_size),
-                range(batch_size, len(captions), batch_size)):
+        for start, end in zip(range(0, len(index), batch_size),range(batch_size, len(index), batch_size)):
 
-            current_feats = feats[ image_id[start:end] ]
+            current_feats = feats[index[start:end]]
             current_feats = current_feats.reshape(-1, ctx_shape[1], ctx_shape[0]).swapaxes(1,2)
 
-            current_captions = captions[start:end]
-            current_caption_ind = map(lambda cap: [wordtoix[word] for word in cap.lower().split(' ')[:-1] if word in wordtoix], current_captions) # '.'은 제거
+            current_captions = captions[index[start:end] ]
+            current_caption_ind = [x for x in map(lambda cap: [wordtoix[word] for word in cap.lower().split(' ')[:-1] if word in wordtoix], current_captions)] # '.'은 제거
 
             current_caption_matrix = sequence.pad_sequences(current_caption_ind, padding='post', maxlen=maxlen+1)
+            current_caption_matrix = np.hstack([np.full((len(current_caption_matrix), 1), 0), current_caption_matrix])
 
             current_mask_matrix = np.zeros((current_caption_matrix.shape[0], current_caption_matrix.shape[1]))
-            nonzeros = np.array( map(lambda x: (x != 0).sum()+1, current_caption_matrix ))
+            nonzeros = np.array([x for x in map(lambda x: (x != 0).sum()+1, current_caption_matrix )])
 
             for ind, row in enumerate(current_mask_matrix):
                 row[:nonzeros[ind]] = 1
@@ -332,5 +333,4 @@ def test(test_feat='./guitar_player.npy', model_path='./model/model-6', maxlen=2
 #    generated_sentence = ' '.join(generated_words)
 #    ipdb.set_trace()
 train()
-
 
