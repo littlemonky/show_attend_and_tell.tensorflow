@@ -252,6 +252,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     maxlen = np.max([x for x in map(lambda x: len(x.split(' ')), captions)])
 
     sess = tf.InteractiveSession()
+    summary_string_writer = tf.summary.FileWriter(model_path)
 
     caption_generator = Caption_Generator(
             n_words=n_words,
@@ -310,7 +311,13 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
             print("Current Cost: ", loss_value)
             tf.summary.scalar("losses", loss_value)
             tf.summary.scalar("learning_rate", learning_rate)
+            merged_summary_op = tf.summary.merge_all()
+            summary_string_writer.add_summary(sess.run(merged_summary_op), epoch*(len(index)/batch_size)+start+1)
+            
+            
         saver.save(sess, os.path.join(model_path, 'model'), global_step=epoch)
+        
+    summary__string_writer.close()
 
 def test(test_feat='./guitar_player.npy', model_path='./model/model-6', maxlen=20):
     annotation_data = pd.read_pickle(annotation_path)
