@@ -247,7 +247,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     learning_rate=2.0
     global_step=tf.Variable(0,trainable=False)
     learning_rate = tf.train.exponential_decay(learning_rate, global_step,
-                                       int(len(index)/batch_size), 0.95,staircase = True)
+                                       int(len(index)/batch_size), 0.95, staircase = True)
 
     maxlen = np.max([x for x in map(lambda x: len(x.split(' ')), captions)])
 
@@ -270,8 +270,10 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     saver=tf.train.Saver(max_to_keep=50)
 
     train_op = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss)
-    tf.summary.scalar("loss", loss_value)
+    
+    tf.summary.scalar("loss", loss)
     tf.summary.scalar("learning_rate", learning_rate)
+    
     merged_summary_op = tf.summary.merge_all()
     
     
