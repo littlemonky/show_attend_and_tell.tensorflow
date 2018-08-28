@@ -280,9 +280,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
 
     #captions = annotation_data['caption'].values
     #image_id = annotation_data['image_id'].values
-    print(mask.shape)
-    print(sentence.shape)
-    print(context.shape)
+
     for epoch in range(n_epochs):
         for start, end in zip(range(0, len(index), batch_size),range(batch_size, len(index), batch_size)):
 
@@ -297,7 +295,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
 
 
             current_mask_matrix = np.zeros((current_caption_matrix.shape[0], current_caption_matrix.shape[1]))
-            print(current_mask_matrix.shape)
+
             nonzeros = np.array([x for x in map(lambda x: (x != 0).sum()+1, current_caption_matrix )])
 
 
