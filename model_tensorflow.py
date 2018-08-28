@@ -308,7 +308,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
                 mask:current_mask_matrix})
 
             print("Current Cost: ", loss_value)
-            tf.summary.scalar("losses", loss)
+            tf.summary.scalar("losses", loss_value)
             tf.summary.scalar("learning_rate", learning_rate)
         saver.save(sess, os.path.join(model_path, 'model'), global_step=epoch)
 
