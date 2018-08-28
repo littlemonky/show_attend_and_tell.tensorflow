@@ -1,14 +1,14 @@
 #-*- coding: utf-8 -*-
 import math
 import os
-import ipdb
+#import ipdb
 import tensorflow as tf
 import numpy as np
 import pandas as pd
 import pickle
 
 #from tensorflow.models.rnn import rnn_cell
-import tensorflow.python.platform
+#import tensorflow.python.platform
 from keras.preprocessing import sequence
 
 class Caption_Generator():
