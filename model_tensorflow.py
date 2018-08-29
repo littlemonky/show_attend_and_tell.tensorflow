@@ -244,7 +244,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     index = (np.arange(len(feats)).astype(int))
     np.random.shuffle(index)
 
-    learning_rate=1
+    learning_rate=2
     #global_step=tf.Variable(0,trainable=False)
     #learning_rate = tf.train.exponential_decay(learning_rate, global_step,
     #                                   1, 0.95, staircase = True)
@@ -290,7 +290,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     #captions = annotation_data['caption'].values
     #image_id = annotation_data['image_id'].values
 
-    for epoch in range(607, n_epochs):
+    for epoch in range(n_epochs):
         for start, end in zip(range(0, len(index), batch_size),range(batch_size, len(index), batch_size)):
 
             current_feats = feats[index[start:end]]
@@ -316,9 +316,10 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
                 sentence:current_caption_matrix,
                 mask:current_mask_matrix})
 
-            
-            print("Current Cost: ", loss_value)        
-            summary_string_writer.add_summary(summary_string, epoch*len(index)+start+1)
+            step = epoch*len(index)+start+1
+            print('step [{0}] loss [{1}]'.format(step, loss_value))
+            #print("Current Cost: ", loss_value)        
+            summary_string_writer.add_summary(summary_string, step)
             
             
         saver.save(sess, os.path.join(model_path, 'model'), global_step=epoch)
