@@ -290,7 +290,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     #captions = annotation_data['caption'].values
     #image_id = annotation_data['image_id'].values
 
-    for epoch in range(n_epochs):
+    for epoch in range(607, n_epochs):
         for start, end in zip(range(0, len(index), batch_size),range(batch_size, len(index), batch_size)):
 
             current_feats = feats[index[start:end]]
