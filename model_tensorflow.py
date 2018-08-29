@@ -224,7 +224,7 @@ dim_embed=256
 dim_ctx=512
 dim_hidden=256
 ctx_shape=[196,512]
-pretrained_model_path = None
+pretrained_model_path = "output"
 #############################
 ###### 잡다한 Parameters #####
 annotation_path = '/data/weixin-42421001/vgg/annotations.pickle'
@@ -244,7 +244,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     index = (np.arange(len(feats)).astype(int))
     
 
-    learning_rate=0.2
+    learning_rate=0.001
     #global_step=tf.Variable(0,trainable=False)
     #learning_rate = tf.train.exponential_decay(learning_rate, global_step,
     #                                   1, 0.95, staircase = True)
@@ -290,7 +290,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     #captions = annotation_data['caption'].values
     #image_id = annotation_data['image_id'].values
 
-    for epoch in range(n_epochs):
+    for epoch in range(607, n_epochs):
         np.random.shuffle(index)
         for start, end in zip(range(0, len(index), batch_size),range(batch_size, len(index), batch_size)):
 
