@@ -242,7 +242,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     n_words = len(wordtoix)
     feats = np.load(feat_path)
     index = (np.arange(len(feats)).astype(int))
-    np.random.shuffle(index)
+    
 
     learning_rate=0.2
     #global_step=tf.Variable(0,trainable=False)
@@ -291,6 +291,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     #image_id = annotation_data['image_id'].values
 
     for epoch in range(n_epochs):
+        np.random.shuffle(index)
         for start, end in zip(range(0, len(index), batch_size),range(batch_size, len(index), batch_size)):
 
             current_feats = feats[index[start:end]]
