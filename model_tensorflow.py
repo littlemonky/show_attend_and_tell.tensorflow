@@ -278,9 +278,10 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     
     
     tf.global_variables_initializer().run()
-    if pretrained_model_path:
+    if pretrained_model_path is not None:
+        checkpoint_path = tf.train.latest_checkpoint(pretrained_model_path)
         print("Starting with pretrained model")
-        saver.restore(sess, pretrained_model_path)
+        saver.restore(sess, checkpoint_path)
 
     #index = list(annotation_data.index)
     #np.random.shuffle(index)
