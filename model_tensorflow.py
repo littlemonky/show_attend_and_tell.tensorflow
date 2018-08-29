@@ -244,7 +244,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     index = (np.arange(len(feats)).astype(int))
     np.random.shuffle(index)
 
-    learning_rate=2
+    learning_rate=1
     #global_step=tf.Variable(0,trainable=False)
     #learning_rate = tf.train.exponential_decay(learning_rate, global_step,
     #                                   1, 0.95, staircase = True)
