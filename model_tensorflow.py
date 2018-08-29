@@ -224,7 +224,7 @@ dim_embed=256
 dim_ctx=512
 dim_hidden=256
 ctx_shape=[196,512]
-pretrained_model_path = "output"
+pretrained_model_path = None
 #############################
 ###### 잡다한 Parameters #####
 annotation_path = '/data/weixin-42421001/vgg/annotations.pickle'
