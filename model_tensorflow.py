@@ -218,7 +218,7 @@ def preProBuildWordVocab(sentence_iterator, word_count_threshold=4): # borrowed 
 
 
 ###### 학습 관련 Parameters ######
-n_epochs=5000
+n_epochs=8000
 batch_size=30
 dim_embed=256
 dim_ctx=512
@@ -290,7 +290,7 @@ def train(pretrained_model_path=pretrained_model_path): # 전에 학습하던게
     #captions = annotation_data['caption'].values
     #image_id = annotation_data['image_id'].values
 
-    for epoch in range(3644, n_epochs):
+    for epoch in range(5000, n_epochs):
         np.random.shuffle(index)
         for start, end in zip(range(0, len(index), batch_size),range(batch_size, len(index), batch_size)):
 
